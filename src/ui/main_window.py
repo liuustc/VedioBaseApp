@@ -491,7 +491,7 @@ class MainWindow(QMainWindow):
         self.duration_spin = QSpinBox()
         self.duration_spin.setRange(0, 1440)  # 最大24小时
         self.duration_spin.setSingleStep(10)
-        self.duration_spin.setValue(0)
+        self.duration_spin.setValue(30)
         self.duration_spin.valueChanged.connect(self.filter_movies)
         duration_layout.addWidget(self.duration_spin)
         duration_group.setLayout(duration_layout)
