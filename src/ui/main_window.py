@@ -252,6 +252,7 @@ class MovieListWidget(QTableWidget):
 
         # 设置固定列宽
         self.setColumnWidth(0, 50)   # ID
+        self.setColumnWidth(1, 400)  # 标题 - 设置初始宽度
         self.setColumnWidth(2, 100)  # 文件大小
         self.setColumnWidth(3, 80)   # 时长
         self.setColumnWidth(4, 80)   # 评分
@@ -325,9 +326,12 @@ class MovieListWidget(QTableWidget):
             id_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.setItem(row, 0, id_item)
 
-            # 标题
+            # 标题 - 截断过长标题，保留完整标题用于tooltip
             title = movie.get('title', '')
-            title_item = QTableWidgetItem(title)
+            display_title = title[:60] + '...' if len(title) > 60 else title
+            title_item = QTableWidgetItem(display_title)
+            title_item.setToolTip(title)  # 鼠标悬停显示完整标题
+            title_item.setData(Qt.ItemDataRole.UserRole, title)  # 存储完整标题
             self.setItem(row, 1, title_item)
 
             # 文件大小
