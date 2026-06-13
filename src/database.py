@@ -58,6 +58,14 @@ class Database:
                 cursor.execute("ALTER TABLE movies ADD COLUMN user_rating REAL")
                 logger.info("数据库迁移：添加user_rating字段")
 
+            # 检查并添加download_time字段（数据库迁移）
+            try:
+                cursor.execute("SELECT download_time FROM movies LIMIT 1")
+            except sqlite3.OperationalError:
+                # 字段不存在，添加它
+                cursor.execute("ALTER TABLE movies ADD COLUMN download_time TIMESTAMP")
+                logger.info("数据库迁移：添加download_time字段")
+
             # 标签表
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS tags (
@@ -159,6 +167,7 @@ class Database:
                         douban_rating = ?,
                         imdb_rating = ?,
                         user_rating = ?,
+                        download_time = ?,
                         rating_source = ?,
                         douban_intro = ?,
                         imdb_intro = ?,
@@ -172,6 +181,7 @@ class Database:
                     movie_data.get('douban_rating'),
                     movie_data.get('imdb_rating'),
                     movie_data.get('user_rating'),
+                    movie_data.get('download_time'),
                     movie_data.get('rating_source', 'douban'),
                     movie_data.get('douban_intro'),
                     movie_data.get('imdb_intro'),
@@ -184,9 +194,9 @@ class Database:
                 cursor.execute('''
                     INSERT INTO movies (
                         file_path, title, file_size, duration,
-                        douban_rating, imdb_rating, user_rating, rating_source,
+                        douban_rating, imdb_rating, user_rating, download_time, rating_source,
                         douban_intro, imdb_intro, imdb_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     movie_data['file_path'],
                     movie_data.get('title'),
@@ -195,6 +205,7 @@ class Database:
                     movie_data.get('douban_rating'),
                     movie_data.get('imdb_rating'),
                     movie_data.get('user_rating'),
+                    movie_data.get('download_time'),
                     movie_data.get('rating_source', 'douban'),
                     movie_data.get('douban_intro'),
                     movie_data.get('imdb_intro'),

@@ -56,11 +56,17 @@ class ScanWorker(QThread):
                 # 获取文件信息
                 file_info = scanner.get_file_info(video_path)
 
+                # 从文件修改时间转换为datetime字符串
+                from datetime import datetime
+                modified_time = file_info.get('modified_time', 0)
+                download_time = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S') if modified_time else None
+
                 # 只保存基本信息
                 movie_data = {
                     'file_path': video_path,
                     'title': Path(video_path).stem,
                     'file_size': file_info['file_size'],
+                    'download_time': download_time,
                 }
 
                 # 检查数据库中是否已存在该电影
@@ -235,8 +241,8 @@ class MovieListWidget(QTableWidget):
 
     def setup_ui(self):
         """设置UI"""
-        self.setColumnCount(6)
-        self.setHorizontalHeaderLabels(['ID', '标题', '文件大小', '时长', '评分', '我的评分'])
+        self.setColumnCount(7)
+        self.setHorizontalHeaderLabels(['ID', '标题', '文件大小', '时长', '评分', '我的评分', '下载时间'])
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -245,21 +251,23 @@ class MovieListWidget(QTableWidget):
         # 设置列宽模式 - 允许用户拖动调整
         header = self.horizontalHeader()
         header.setStretchLastSection(False)
-        header.setMinimumSectionSize(200)  # 最小列宽200，防止标题被过度压缩
+        header.setMinimumSectionSize(150)  # 最小列宽150，防止标题被过度压缩
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)      # ID
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)    # 标题 - 自动伸展
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)      # 文件大小
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)      # 时长
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)      # 评分
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)      # 我的评分
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)      # 下载时间
 
         # 设置固定列宽
         self.setColumnWidth(0, 50)   # ID
-        self.setColumnWidth(1, 500)  # 标题 - 初始宽度500
+        self.setColumnWidth(1, 400)  # 标题 - 初始宽度400
         self.setColumnWidth(2, 100)  # 文件大小
         self.setColumnWidth(3, 80)   # 时长
         self.setColumnWidth(4, 80)   # 评分
         self.setColumnWidth(5, 80)   # 我的评分
+        self.setColumnWidth(6, 150)  # 下载时间
 
         # 连接表头点击信号
         self.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
@@ -304,6 +312,9 @@ class MovieListWidget(QTableWidget):
             elif col == 5:  # 我的评分
                 val = movie.get('user_rating')
                 return float(val) if val is not None else 0.0
+            elif col == 6:  # 下载时间
+                val = movie.get('download_time', '')
+                return str(val) if val else ''
             return 0
 
         # 排序
@@ -378,6 +389,19 @@ class MovieListWidget(QTableWidget):
             user_rating_item.setData(Qt.ItemDataRole.UserRole, user_rating)  # 存储原始值用于排序
             user_rating_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.setItem(row, 5, user_rating_item)
+
+            # 下载时间
+            download_time = movie.get('download_time', '')
+            # 只显示日期和时间，不显示秒
+            if download_time and len(download_time) > 16:
+                display_time = download_time[:16]
+            else:
+                display_time = download_time or 'N/A'
+            time_item = QTableWidgetItem(display_time)
+            time_item.setToolTip(download_time)  # 鼠标悬停显示完整时间
+            time_item.setData(Qt.ItemDataRole.UserRole, download_time)  # 存储原始值用于排序
+            time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.setItem(row, 6, time_item)
 
 
 class MainWindow(QMainWindow):
