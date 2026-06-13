@@ -747,7 +747,17 @@ class MainWindow(QMainWindow):
         self.movie_list.update_movies(movies)
 
     def update_tags_tree(self):
-        """更新标签树"""
+        """更新标签树，保留选中状态"""
+        # 记录当前选中的标签ID
+        selected_tag_ids = set()
+        root = self.tags_tree.invisibleRootItem()
+        for i in range(root.childCount()):
+            item = root.child(i)
+            if item.checkState(0) == Qt.CheckState.Checked:
+                tag_id = item.data(0, Qt.ItemDataRole.UserRole)
+                selected_tag_ids.add(tag_id)
+
+        # 清除并重建树
         self.tags_tree.clear()
         tags = tag_manager.get_all_tags()
 
@@ -756,8 +766,13 @@ class MainWindow(QMainWindow):
             movies_count = len(tag_manager.get_movies_by_tag(tag['id']))
             item = QTreeWidgetItem(self.tags_tree)
             item.setText(0, f"{tag['name']} ({movies_count})")
-            item.setCheckState(0, Qt.CheckState.Unchecked)
             item.setData(0, Qt.ItemDataRole.UserRole, tag['id'])
+
+            # 恢复选中状态
+            if tag['id'] in selected_tag_ids:
+                item.setCheckState(0, Qt.CheckState.Checked)
+            else:
+                item.setCheckState(0, Qt.CheckState.Unchecked)
 
     def on_tag_filter_changed(self, item, column):
         """标签过滤改变"""
