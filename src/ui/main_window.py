@@ -235,15 +235,23 @@ class MovieListWidget(QTableWidget):
         """设置UI"""
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(['ID', '标题', '文件大小', '时长', '评分', '我的评分'])
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         # 注意：不启用setSortingEnabled，使用自定义排序逻辑
 
-        # 设置列宽
+        # 设置列宽模式 - 允许用户拖动调整
+        header = self.horizontalHeader()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)      # ID
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)    # 标题 - 自动伸展
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)      # 文件大小
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)      # 时长
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)      # 评分
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)      # 我的评分
+
+        # 设置固定列宽
         self.setColumnWidth(0, 50)   # ID
-        self.setColumnWidth(1, 300)  # 标题
         self.setColumnWidth(2, 100)  # 文件大小
         self.setColumnWidth(3, 80)   # 时长
         self.setColumnWidth(4, 80)   # 评分
