@@ -739,8 +739,10 @@ class MainWindow(QMainWindow):
         tags = tag_manager.get_all_tags()
 
         for tag in tags:
+            # 获取该标签下的电影数量
+            movies_count = len(tag_manager.get_movies_by_tag(tag['id']))
             item = QTreeWidgetItem(self.tags_tree)
-            item.setText(0, tag['name'])
+            item.setText(0, f"{tag['name']} ({movies_count})")
             item.setCheckState(0, Qt.CheckState.Unchecked)
             item.setData(0, Qt.ItemDataRole.UserRole, tag['id'])
 
