@@ -1,0 +1,28 @@
+# 视频库管理工具依赖
+# 在虚拟环境中安装: pip install -r requirements.txt
+
+# GUI框架
+PyQt6==6.6.0
+
+# 视频处理
+moviepy==1.0.3
+
+# 网络请求
+requests==2.31.0
+
+# 图像处理
+Pillow==10.2.0
+opencv-python==4.9.0.80
+
+# 进度条
+tqdm==4.66.2
+
+# 日志
+loguru==0.7.2
+
+# 可选：用于更强大的视频处理
+# ffmpeg-python==0.2.0
+
+# 可选：用于解析HTML（豆瓣详情）
+# beautifulsoup4==4.12.3
+# lxml==5.1.0
