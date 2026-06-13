@@ -90,17 +90,18 @@ class DurationWorker(QThread):
     finished = pyqtSignal(int)  # processed count
     error = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self, movies=None):
         super().__init__()
         self._should_stop = False
+        self._movies = movies  # 可以指定要处理的影片列表
 
     def stop(self):
         self._should_stop = True
 
     def run(self):
         try:
-            # 获取所有电影
-            movies = database.get_all_movies()
+            # 获取电影列表
+            movies = self._movies if self._movies is not None else database.get_all_movies()
             if not movies:
                 self.finished.emit(0)
                 return
@@ -148,17 +149,18 @@ class MetaWorker(QThread):
     finished = pyqtSignal(int)  # processed count
     error = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self, movies=None):
         super().__init__()
         self._should_stop = False
+        self._movies = movies  # 可以指定要处理的影片列表
 
     def stop(self):
         self._should_stop = True
 
     def run(self):
         try:
-            # 获取所有电影
-            movies = database.get_all_movies()
+            # 获取电影列表
+            movies = self._movies if self._movies is not None else database.get_all_movies()
             if not movies:
                 self.finished.emit(0)
                 return
@@ -628,15 +630,16 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(f"扫描错误: {error}", 5000)
 
     def fetch_metadata(self):
-        """拉取元数据"""
-        movies = database.get_all_movies()
+        """拉取元数据 - 仅对当前列表中的影片生效"""
+        # 获取当前列表中显示的影片
+        movies = self.movie_list.movies_data
         if not movies:
-            QMessageBox.information(self, "提示", "没有电影数据，请先扫描目录")
+            QMessageBox.information(self, "提示", "列表为空，请先扫描目录或调整过滤条件")
             return
 
         reply = QMessageBox.question(
             self, "确认",
-            f"将为 {len(movies)} 部电影拉取元数据（时长、评分等），是否继续？",
+            f"将为当前列表中的 {len(movies)} 部电影拉取元数据（时长、评分等），是否继续？",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 
@@ -649,8 +652,8 @@ class MainWindow(QMainWindow):
         self.meta_progress.setMinimumDuration(0)
         self.meta_progress.setMinimumWidth(400)
 
-        # 创建元数据拉取线程
-        self.meta_worker = MetaWorker()
+        # 创建元数据拉取线程，传递当前列表的影片
+        self.meta_worker = MetaWorker(movies)
         self.meta_worker.progress_updated.connect(self.update_meta_progress)
         self.meta_worker.finished.connect(self.on_meta_finished)
         self.meta_worker.error.connect(self.on_meta_error)
