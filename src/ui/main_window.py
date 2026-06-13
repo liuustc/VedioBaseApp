@@ -243,6 +243,7 @@ class MovieListWidget(QTableWidget):
         # 设置列宽模式 - 允许用户拖动调整
         header = self.horizontalHeader()
         header.setStretchLastSection(False)
+        header.setMinimumSectionSize(200)  # 最小列宽200，防止标题被过度压缩
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)      # ID
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)    # 标题 - 自动伸展
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)      # 文件大小
@@ -252,7 +253,7 @@ class MovieListWidget(QTableWidget):
 
         # 设置固定列宽
         self.setColumnWidth(0, 50)   # ID
-        self.setColumnWidth(1, 400)  # 标题 - 设置初始宽度
+        self.setColumnWidth(1, 500)  # 标题 - 初始宽度500
         self.setColumnWidth(2, 100)  # 文件大小
         self.setColumnWidth(3, 80)   # 时长
         self.setColumnWidth(4, 80)   # 评分
