@@ -855,6 +855,10 @@ class MainWindow(QMainWindow):
         dialog = MovieDetailsDialog(movie_id, self)
         dialog.exec()
 
+        # 详情页关闭后刷新标签树和电影列表
+        self.update_tags_tree()
+        self.filter_movies()
+
     def edit_movie(self):
         """编辑电影"""
         current_row = self.movie_list.currentRow()
