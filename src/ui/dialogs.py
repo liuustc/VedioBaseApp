@@ -55,6 +55,12 @@ class MovieDetailsDialog(QDialog):
         self.path_label.setWordWrap(True)
         basic_layout.addRow("文件路径:", self.path_label)
 
+        # 播放按钮
+        play_btn = QPushButton("播放")
+        play_btn.setMinimumHeight(32)
+        play_btn.clicked.connect(self.play_video)
+        basic_layout.addRow("", play_btn)
+
         self.size_label = QLabel()
         basic_layout.addRow("文件大小:", self.size_label)
 
@@ -306,6 +312,22 @@ class MovieDetailsDialog(QDialog):
 
         for status, btn in self.status_buttons.items():
             btn.setChecked(status in current_tag_names)
+
+    def play_video(self):
+        """使用系统默认播放器播放视频"""
+        file_path = self.movie.get('file_path', '')
+        if not file_path:
+            QMessageBox.warning(self, "错误", "文件路径为空")
+            return
+
+        if not os.path.exists(file_path):
+            QMessageBox.warning(self, "错误", f"文件不存在:\n{file_path}")
+            return
+
+        try:
+            os.startfile(file_path)
+        except Exception as e:
+            QMessageBox.warning(self, "播放失败", f"无法播放文件:\n{e}")
 
     def save_changes(self):
         """保存更改"""
