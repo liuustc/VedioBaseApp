@@ -242,7 +242,7 @@ class MovieListWidget(QTableWidget):
     def setup_ui(self):
         """设置UI"""
         self.setColumnCount(7)
-        self.setHorizontalHeaderLabels(['ID', '标题', '文件大小', '时长', '评分', '我的评分', '下载时间'])
+        self.setHorizontalHeaderLabels(['ID', '标题', '下载时间', '文件大小', '时长', '我的评分', '评分'])
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -254,20 +254,20 @@ class MovieListWidget(QTableWidget):
         header.setMinimumSectionSize(150)  # 最小列宽150，防止标题被过度压缩
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)      # ID
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)    # 标题 - 自动伸展
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)      # 文件大小
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)      # 时长
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)      # 评分
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)      # 下载时间
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)      # 文件大小
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)      # 时长
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)      # 我的评分
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)      # 下载时间
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)      # 评分
 
         # 设置固定列宽
         self.setColumnWidth(0, 50)   # ID
         self.setColumnWidth(1, 400)  # 标题 - 初始宽度400
-        self.setColumnWidth(2, 100)  # 文件大小
-        self.setColumnWidth(3, 80)   # 时长
-        self.setColumnWidth(4, 80)   # 评分
+        self.setColumnWidth(2, 150)  # 下载时间
+        self.setColumnWidth(3, 100)  # 文件大小
+        self.setColumnWidth(4, 80)   # 时长
         self.setColumnWidth(5, 80)   # 我的评分
-        self.setColumnWidth(6, 150)  # 下载时间
+        self.setColumnWidth(6, 80)   # 评分
 
         # 连接表头点击信号
         self.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
@@ -300,21 +300,21 @@ class MovieListWidget(QTableWidget):
             elif col == 1:  # 标题
                 val = movie.get('title', '')
                 return str(val).lower() if val else ''
-            elif col == 2:  # 文件大小
+            elif col == 2:  # 下载时间
+                val = movie.get('download_time', '')
+                return str(val) if val else ''
+            elif col == 3:  # 文件大小
                 val = movie.get('file_size')
                 return int(val) if val is not None else 0
-            elif col == 3:  # 时长
+            elif col == 4:  # 时长
                 val = movie.get('duration')
                 return int(val) if val is not None else 0
-            elif col == 4:  # 评分
-                val = movie.get('douban_rating') or movie.get('imdb_rating')
-                return float(val) if val is not None else 0.0
             elif col == 5:  # 我的评分
                 val = movie.get('user_rating')
                 return float(val) if val is not None else 0.0
-            elif col == 6:  # 下载时间
-                val = movie.get('download_time', '')
-                return str(val) if val else ''
+            elif col == 6:  # 评分
+                val = movie.get('douban_rating') or movie.get('imdb_rating')
+                return float(val) if val is not None else 0.0
             return 0
 
         # 排序
@@ -348,6 +348,19 @@ class MovieListWidget(QTableWidget):
             title_item.setData(Qt.ItemDataRole.UserRole, title)  # 存储完整标题
             self.setItem(row, 1, title_item)
 
+            # 下载时间
+            download_time = movie.get('download_time', '')
+            # 只显示日期和时间，不显示秒
+            if download_time and len(download_time) > 16:
+                display_time = download_time[:16]
+            else:
+                display_time = download_time or 'N/A'
+            time_item = QTableWidgetItem(display_time)
+            time_item.setToolTip(download_time)  # 鼠标悬停显示完整时间
+            time_item.setData(Qt.ItemDataRole.UserRole, download_time)  # 存储原始值用于排序
+            time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.setItem(row, 2, time_item)
+
             # 文件大小
             file_size = movie.get('file_size', 0) or 0
             if file_size >= 1024 * 1024 * 1024:  # GB
@@ -359,7 +372,7 @@ class MovieListWidget(QTableWidget):
             size_item = QTableWidgetItem(size_str)
             size_item.setData(Qt.ItemDataRole.UserRole, file_size)  # 存储原始值用于排序
             size_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(row, 2, size_item)
+            self.setItem(row, 3, size_item)
 
             # 时长
             duration = movie.get('duration', 0) or 0
@@ -372,15 +385,7 @@ class MovieListWidget(QTableWidget):
             duration_item = QTableWidgetItem(duration_str)
             duration_item.setData(Qt.ItemDataRole.UserRole, duration)  # 存储原始值用于排序
             duration_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(row, 3, duration_item)
-
-            # 评分
-            rating = movie.get('douban_rating') or movie.get('imdb_rating') or 0
-            rating_str = f"{rating:.1f}" if rating else 'N/A'
-            rating_item = QTableWidgetItem(rating_str)
-            rating_item.setData(Qt.ItemDataRole.UserRole, rating)  # 存储原始值用于排序
-            rating_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(row, 4, rating_item)
+            self.setItem(row, 4, duration_item)
 
             # 我的评分
             user_rating = movie.get('user_rating') or 0
@@ -390,18 +395,13 @@ class MovieListWidget(QTableWidget):
             user_rating_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.setItem(row, 5, user_rating_item)
 
-            # 下载时间
-            download_time = movie.get('download_time', '')
-            # 只显示日期和时间，不显示秒
-            if download_time and len(download_time) > 16:
-                display_time = download_time[:16]
-            else:
-                display_time = download_time or 'N/A'
-            time_item = QTableWidgetItem(display_time)
-            time_item.setToolTip(download_time)  # 鼠标悬停显示完整时间
-            time_item.setData(Qt.ItemDataRole.UserRole, download_time)  # 存储原始值用于排序
-            time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(row, 6, time_item)
+            # 评分
+            rating = movie.get('douban_rating') or movie.get('imdb_rating') or 0
+            rating_str = f"{rating:.1f}" if rating else 'N/A'
+            rating_item = QTableWidgetItem(rating_str)
+            rating_item.setData(Qt.ItemDataRole.UserRole, rating)  # 存储原始值用于排序
+            rating_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.setItem(row, 6, rating_item)
 
 
 class MainWindow(QMainWindow):
