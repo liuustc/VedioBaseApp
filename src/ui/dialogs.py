@@ -320,9 +320,8 @@ class MovieDetailsDialog(QDialog):
             QMessageBox.warning(self, "错误", "文件路径为空")
             return
 
-        # 将网络路径的正斜杠转换为反斜杠 (//server -> \\server)
-        if file_path.startswith('//'):
-            file_path = '\\' + file_path[1:]
+        # 将正斜杠转换为反斜杠 (Windows UNC路径)
+        file_path = file_path.replace('/', '\\')
 
         if not os.path.exists(file_path):
             QMessageBox.warning(self, "错误", f"文件不存在:\n{file_path}")
