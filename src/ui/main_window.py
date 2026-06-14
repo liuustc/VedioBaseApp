@@ -421,7 +421,11 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """设置UI"""
         self.setWindowTitle("视频库管理工具")
-        self.setGeometry(100, 100, 1200, 800)
+        # 获取屏幕大小，设置窗口为屏幕的80%
+        screen = QApplication.primaryScreen().geometry()
+        width = min(1400, int(screen.width() * 0.8))
+        height = min(900, int(screen.height() * 0.8))
+        self.setGeometry(100, 100, width, height)
 
         # 创建中央部件
         central_widget = QWidget()
