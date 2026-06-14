@@ -331,6 +331,40 @@ class MovieListWidget(QTableWidget):
     def update_movies(self, movies: List[Dict[str, Any]]):
         """更新电影列表"""
         self.movies_data = movies  # 保存原始数据
+
+        # 如果有排序设置，应用排序
+        if self.sort_column >= 0:
+            def get_sort_key(movie, col):
+                if col == 0:  # ID
+                    return int(movie.get('id', 0))
+                elif col == 1:  # 标题
+                    val = movie.get('title', '')
+                    return str(val).lower() if val else ''
+                elif col == 2:  # 下载时间
+                    val = movie.get('download_time', '')
+                    return str(val) if val else ''
+                elif col == 3:  # 文件大小
+                    val = movie.get('file_size')
+                    return int(val) if val is not None else 0
+                elif col == 4:  # 时长
+                    val = movie.get('duration')
+                    return int(val) if val is not None else 0
+                elif col == 5:  # 我的评分
+                    val = movie.get('user_rating')
+                    return float(val) if val is not None else 0.0
+                elif col == 6:  # 评分
+                    val = movie.get('douban_rating') or movie.get('imdb_rating')
+                    return float(val) if val is not None else 0.0
+                return 0
+
+            reverse = (self.sort_order == Qt.SortOrder.DescendingOrder)
+            movies = sorted(
+                movies,
+                key=lambda x: get_sort_key(x, self.sort_column),
+                reverse=reverse
+            )
+            self.movies_data = movies  # 更新为排序后的数据
+
         self.setRowCount(len(movies))
 
         for row, movie in enumerate(movies):
@@ -421,9 +455,9 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """设置UI"""
         self.setWindowTitle("视频库管理工具")
-        # 获取屏幕大小，设置窗口为屏幕的80%
+        # 获取屏幕大小，设置窗口为屏幕的90%
         screen = QApplication.primaryScreen().geometry()
-        width = min(1400, int(screen.width() * 0.8))
+        width = min(1700, int(screen.width() * 0.9))
         height = min(900, int(screen.height() * 0.8))
         self.setGeometry(100, 100, width, height)
 
