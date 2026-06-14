@@ -4,6 +4,9 @@
 # GUI框架
 PyQt6==6.6.0
 
+# Web界面框架
+nicegui>=1.4.0
+
 # 视频处理
 moviepy==1.0.3
 

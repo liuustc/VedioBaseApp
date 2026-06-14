@@ -437,6 +437,24 @@ class Database:
                 return [dict(zip(columns, row)) for row in rows]
             return []
 
+    def update_user_rating(self, movie_id: int, rating: float) -> bool:
+        """更新用户评分"""
+        with self.lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute(
+                    'UPDATE movies SET user_rating = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                    (rating, movie_id)
+                )
+                conn.commit()
+                conn.close()
+                logger.info(f"更新用户评分: movie_id={movie_id}, rating={rating}")
+                return True
+            except Exception as e:
+                logger.error(f"更新用户评分失败: {e}")
+                return False
+
     # 统计信息
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
